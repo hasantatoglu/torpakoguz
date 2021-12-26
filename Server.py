@@ -1,5 +1,11 @@
 import socket
 import threading
+from bottle import route, run, get, post, request, redirect
+from pyA20.gpio import gpio
+from pyA20.gpio import port
+
+
+
 
 HEADER = 64
 PORT = 5050
@@ -17,6 +23,12 @@ def handle_client(conn, addr):
 
     connected = True
     while connected:
+        relay = port.PA06
+
+        gpio.init()
+        gpio.setcfg(relay, gpio.OUTPUT)
+
+
         msg_length = conn.recv(HEADER).decode(FORMAT)
         if msg_length:
             msg_length = int(msg_length)
@@ -24,9 +36,12 @@ def handle_client(conn, addr):
             if msg == DISCONNECT_MESSAGE:
                 connected = False
             elif msg == "HIGH":
-                print("Open Led in Here")
+                gpio.output(relay.gpio.HIGH)
+
+                print("Relay OPEN!")
             elif msg == "LOW":
-                print("Close Led in Here")
+                gpio.output(relay.gpio.LOW)
+                print("Relay CLOSED!")
 
             print(f"[{addr}] {msg}")
             conn.send("OKEY!".encode(FORMAT))
